@@ -21,8 +21,8 @@ real_dataset_path = 'dataset/real'
 fake_dataset_path = 'dataset/fake'
 
 # Get the first image filename from each dataset
-real_image_filename = os.listdir(real_dataset_path)[0]
-fake_image_filename = os.listdir(fake_dataset_path)[0]
+real_image_filename = os.listdir(real_dataset_path)[1600]
+fake_image_filename = os.listdir(fake_dataset_path)[1600]
 
 # Construct the full paths to the first images
 real_image_path = os.path.join(real_dataset_path, real_image_filename)

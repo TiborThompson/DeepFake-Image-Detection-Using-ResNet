@@ -29,9 +29,10 @@ criterion = nn.CrossEntropyLoss()
 optimizer = optim.Adam(model.parameters(), lr=0.001)
 
 # Training loop
-num_epochs = 10
+num_epochs = 1
 for epoch in range(num_epochs):
     running_loss = 0.0
+    i = 0
     for images, labels in dataloader:
         images = images.to(device)
         labels = labels.to(device)
@@ -43,7 +44,8 @@ for epoch in range(num_epochs):
         optimizer.step()
         
         running_loss += loss.item()
-    
+        i += labels.shape[0]
+        print(i / 22088.0)
     print(f"Epoch [{epoch+1}/{num_epochs}], Loss: {running_loss/len(dataloader):.4f}")
 
 print("Training completed.")

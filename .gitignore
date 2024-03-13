@@ -2,3 +2,6 @@ myv/
 myv/lib/python3.11/site-packages/torch/
 myv/lib/python3.11/site-packages/torch/lib/libtorch_cpu.dylib
 *.dylib 
+dataset
+__pycache__
+Celeb-DF-v2.zip
