@@ -8,7 +8,8 @@ from resnet import resnet18  # Assuming the ResNet code you provided is in a fil
 
 # Set device
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-
+print(torch.cuda.is_available())
+print(device)
 # Define transformations
 transform = transforms.Compose([
     transforms.Resize((224, 224)),
@@ -17,19 +18,29 @@ transform = transforms.Compose([
 ])
 
 # Load the dataset
-dataset = ImageFolder(root='dataset', transform=transform)
+dataset = torch.load('train_dataset.pt')
 dataloader = DataLoader(dataset, batch_size=32, shuffle=True)
 
 # Load the ResNet model
-model = resnet18(num_classes=2)
+model = resnet18(pretrained=True)
+
+num_features = model.fc.in_features
+model.fc = nn.Sequential(
+    nn.Linear(num_features, 256),
+    nn.ReLU(),
+    nn.Dropout(0.4),
+    nn.Linear(256, 1)  # Binary classification, so 2 output units
+)
+
 model = model.to(device)
 
+
 # Define loss function and optimizer
-criterion = nn.CrossEntropyLoss()
+criterion = nn.BCEWithLogitsLoss()
 optimizer = optim.Adam(model.parameters(), lr=0.001)
 
 # Training loop
-num_epochs = 1
+num_epochs = 5
 for epoch in range(num_epochs):
     running_loss = 0.0
     i = 0
@@ -39,7 +50,8 @@ for epoch in range(num_epochs):
         
         optimizer.zero_grad()
         outputs = model(images)
-        loss = criterion(outputs, labels)
+        labels = labels.view(-1, 1)
+        loss = criterion(outputs, labels.float())
         loss.backward()
         optimizer.step()
         

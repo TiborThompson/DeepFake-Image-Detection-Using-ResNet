@@ -1,8 +1,11 @@
 import torch
+import torch.nn as nn
+import numpy as np
 from torchvision import transforms
-from PIL import Image
 from resnet import resnet18
-import os
+from torch.utils.data import DataLoader
+
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 # Define the transformations to be applied to the input images
 transform = transforms.Compose([
@@ -12,46 +15,48 @@ transform = transforms.Compose([
 ])
 
 # Load the trained model
-model = resnet18(num_classes=2)
+model = resnet18()
+num_features = model.fc.in_features
+model.fc = nn.Sequential(
+    nn.Linear(num_features, 256),
+    nn.ReLU(),
+    nn.Dropout(0.4),
+    nn.Linear(256, 1)  # Binary classification, so 2 output units
+)
+model.to(device)
 model.load_state_dict(torch.load('deepfake_classifier.pth'))
 model.eval()
 
-# Specify the paths to the "real" and "fake" datasets
-real_dataset_path = 'dataset/real'
-fake_dataset_path = 'dataset/fake'
+test_dataset = torch.load('test_dataset.pt')
+test_loader = DataLoader(test_dataset, batch_size=32, shuffle=False)
 
-# Get the first image filename from each dataset
-real_image_filename = os.listdir(real_dataset_path)[1600]
-fake_image_filename = os.listdir(fake_dataset_path)[1600]
+all_predictions = []
+all_labels = []
 
-# Construct the full paths to the first images
-real_image_path = os.path.join(real_dataset_path, real_image_filename)
-fake_image_path = os.path.join(fake_dataset_path, fake_image_filename)
+# Iterate over the test dataset
+with torch.no_grad():
+    for images, labels in test_loader:
+        # Move images and labels to the device the model is on
+        images = images.to(device)
+        labels = labels.to(device)
+        
+        # Perform inference
+        outputs = model(images)
+        
+        # Apply a sigmoid activation function to get probabilities
+        probabilities = torch.sigmoid(outputs)
+        
+        # Round probabilities to get predicted class labels
+        predictions = torch.round(probabilities).squeeze()
+        
+        # Collect predictions and labels
+        all_predictions.extend(predictions.cpu().numpy())
+        all_labels.extend(labels.cpu().numpy())
 
-# Function to classify an image
-def classify_image(image_path):
-    # Load the image
-    image = Image.open(image_path)
-    
-    # Convert the image to RGB format
-    image = image.convert('RGB')
-    
-    # Preprocess the image
-    image = transform(image).unsqueeze(0)
+# Convert predictions and labels to numpy arrays
+all_predictions = np.array(all_predictions)
+all_labels = np.array(all_labels)
 
-    # Perform inference
-    with torch.no_grad():
-        output = model(image)
-        _, predicted = torch.max(output, 1)
-
-    # Print the predicted class
-    if predicted.item() == 0:
-        print(f"The image '{image_path}' is classified as real.")
-    else:
-        print(f"The image '{image_path}' is classified as fake.")
-
-# Classify the first image from the "real" dataset
-classify_image(real_image_path)
-
-# Classify the first image from the "fake" dataset
-classify_image(fake_image_path)
+# Calculate evaluation metrics (e.g., accuracy, precision, recall, F1 score)
+accuracy = (all_predictions == all_labels).mean()
+print("Accuracy:", accuracy)
