@@ -40,7 +40,7 @@ criterion = nn.BCEWithLogitsLoss()
 optimizer = optim.Adam(model.parameters(), lr=0.001)
 
 # Training loop
-num_epochs = 5
+num_epochs = 3
 for epoch in range(num_epochs):
     running_loss = 0.0
     i = 0
@@ -57,7 +57,7 @@ for epoch in range(num_epochs):
         
         running_loss += loss.item()
         i += labels.shape[0]
-        print(i / 22088.0)
+        print(i / 48088.0)
     print(f"Epoch [{epoch+1}/{num_epochs}], Loss: {running_loss/len(dataloader):.4f}")
 
 print("Training completed.")

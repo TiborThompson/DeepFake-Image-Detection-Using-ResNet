@@ -58,6 +58,6 @@ def extract_random_frames_from_zip(
 
 # Example usage
 zip_file_path = "Celeb-DF-v2.zip"
-folder_within_zip = "Celeb-real"
-output_folder = "real"
-extract_random_frames_from_zip(zip_file_path, folder_within_zip, output_folder, num_frames=10)
+folder_within_zip = "Celeb-synthesis"
+output_folder = "dataset\\fake"
+extract_random_frames_from_zip(zip_file_path, folder_within_zip, output_folder, num_frames=8)
