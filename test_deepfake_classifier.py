@@ -4,6 +4,7 @@ import numpy as np
 from torchvision import transforms
 from resnet import resnet18
 from torch.utils.data import DataLoader
+from sklearn.metrics import confusion_matrix
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
@@ -18,10 +19,7 @@ transform = transforms.Compose([
 model = resnet18()
 num_features = model.fc.in_features
 model.fc = nn.Sequential(
-    nn.Linear(num_features, 256),
-    nn.ReLU(),
-    nn.Dropout(0.4),
-    nn.Linear(256, 1)  # Binary classification, so 2 output units
+    nn.Linear(num_features, 1)  # Binary classification, so 2 output units
 )
 model.to(device)
 model.load_state_dict(torch.load('deepfake_classifier.pth'))
@@ -60,3 +58,10 @@ all_labels = np.array(all_labels)
 # Calculate evaluation metrics (e.g., accuracy, precision, recall, F1 score)
 accuracy = (all_predictions == all_labels).mean()
 print("Accuracy:", accuracy)
+
+# Compute confusion matrix
+cm = confusion_matrix(all_labels, all_predictions)
+
+# Print confusion matrix
+print("Confusion Matrix:")
+print(cm)

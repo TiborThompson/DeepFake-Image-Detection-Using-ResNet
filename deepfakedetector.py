@@ -6,6 +6,7 @@ from torchvision.datasets import ImageFolder
 from torch.utils.data import DataLoader
 from resnet import resnet18  # Assuming the ResNet code you provided is in a file named 'resnet.py'
 
+
 # Set device
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 print(torch.cuda.is_available())
@@ -26,10 +27,7 @@ model = resnet18(pretrained=True)
 
 num_features = model.fc.in_features
 model.fc = nn.Sequential(
-    nn.Linear(num_features, 256),
-    nn.ReLU(),
-    nn.Dropout(0.4),
-    nn.Linear(256, 1)  # Binary classification, so 2 output units
+    nn.Linear(num_features, 1) 
 )
 
 model = model.to(device)
@@ -40,7 +38,7 @@ criterion = nn.BCEWithLogitsLoss()
 optimizer = optim.Adam(model.parameters(), lr=0.001)
 
 # Training loop
-num_epochs = 3
+num_epochs = 2
 for epoch in range(num_epochs):
     running_loss = 0.0
     i = 0
